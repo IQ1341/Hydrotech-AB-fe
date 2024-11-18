@@ -56,7 +56,7 @@ const NotificationsScreen = ({ navigation }) => {
                 <Icon 
                     name="bell" 
                     size={24} 
-                    color={item.isRead ? '#cccccc' : '#00a5a5'} 
+                    color={item.isRead ? '#cccccc' : '#226F54'} 
                     style={styles.notificationIcon} 
                 />
                 <View style={styles.notificationText}>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#00a5a5',
+        backgroundColor: '#226F54',
         paddingVertical: 15,
         paddingHorizontal: 10,
     },
@@ -245,12 +245,12 @@ const styles = StyleSheet.create({
     },
     suggestionText: {
         fontSize: 14,
-        color: '#00a5a5',
+        color: '#226F54',
         fontStyle: 'italic',
         marginBottom: 10,
     },
     closeButton: {
-        backgroundColor: '#00a5a5',
+        backgroundColor: '#226F54',
         borderRadius: 5,
         paddingVertical: 10,
         paddingHorizontal: 20,

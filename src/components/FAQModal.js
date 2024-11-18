@@ -45,7 +45,7 @@ const FAQModal = () => {
             <Icon
               name={expandedIndex === index ? 'chevron-up' : 'chevron-down'}
               size={20}
-              color="#00a5a5"
+              color="#226F54"
             />
           </TouchableOpacity>
           {expandedIndex === index && (
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00a5a5',
+    color: '#226F54',
   },
   faqContainer: {
     marginBottom: 20,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   question: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#00a5a5',
+    color: '#226F54',
   },
   answer: {
     fontSize: 16,

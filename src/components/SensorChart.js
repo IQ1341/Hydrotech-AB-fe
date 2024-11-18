@@ -15,8 +15,8 @@ const SensorChart = ({ title, data, screenWidth, chartConfig }) => {
             },
           ],
         }}
-        width={screenWidth - 30}
-        height={220}
+        width={screenWidth - 70}
+        height={200}
         chartConfig={chartConfig}
         style={styles.chart}
         bezier
@@ -28,12 +28,13 @@ const SensorChart = ({ title, data, screenWidth, chartConfig }) => {
 const styles = StyleSheet.create({
   chartContainer: {
     marginRight: 20,
+    
   },
   sectionHeader: {
     textAlign: 'center',
     marginBottom: 10,
     fontSize: 18,
-    color: '#2f8f9d',
+    color: '#f3f3f3',
   },
   chart: {
     borderRadius: 16,

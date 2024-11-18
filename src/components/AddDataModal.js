@@ -8,7 +8,6 @@ import { addSensorData } from '../services/api'; // Ensure the path is correct
 const AddDataModal = ({ onClose }) => {
     const [ec, setEc] = useState('');
     const [ph, setPh] = useState('');
-    const [doValue, setDoValue] = useState('');
     const [temperature, setTemperature] = useState('');
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -21,7 +20,6 @@ const AddDataModal = ({ onClose }) => {
             const sensorData = {
                 ec: parseFloat(ec),
                 ph: parseFloat(ph),
-                do: parseFloat(doValue),
                 temperature: parseFloat(temperature),
                 timestamp: date.toISOString(),
             };
@@ -83,14 +81,6 @@ const AddDataModal = ({ onClose }) => {
             />
             <TextInput
                 style={styles.input}
-                placeholder="DO"
-                value={doValue}
-                onChangeText={setDoValue}
-                keyboardType="numeric"
-                placeholderTextColor="#aaa"
-            />
-            <TextInput
-                style={styles.input}
                 placeholder="Temperature"
                 value={temperature}
                 onChangeText={setTemperature}
@@ -144,7 +134,7 @@ const AddDataModal = ({ onClose }) => {
                 closeOnHardwareBackPress={false}
                 showConfirmButton={true}
                 confirmText="OK"
-                confirmButtonColor="#009382"
+                confirmButtonColor="#226F54"
                 onConfirmPressed={() => {
                     setShowSuccessAlert(false);
                     onClose();
@@ -188,7 +178,7 @@ const styles = StyleSheet.create({
         width: '100%',
         padding: 10,
         marginVertical: 5,
-        borderColor: '#009382',
+        borderColor: '#226F54',
         borderWidth: 1,
         borderRadius: 15,
         color:'#000',
@@ -218,7 +208,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     saveButton: {
-        backgroundColor: '#009382',
+        backgroundColor: '#226F54',
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 15,

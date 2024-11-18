@@ -1,35 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Animated, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getNotifications } from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getNotifications} from '../services/api';
 
-const CustomHeader = ({ navigation }) => {
+const CustomHeader = ({navigation}) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [badgeScale] = useState(new Animated.Value(1));
-  const [username, setUsername] = useState('');
-  const [animatedText, setAnimatedText] = useState([]);
-  const animatedValues = [];
 
   useEffect(() => {
-    const fetchUsername = async () => {
-      try {
-        const storedUsername = await AsyncStorage.getItem('username');
-        if (storedUsername) {
-          setUsername(storedUsername);
-        }
-      } catch (error) {
-        console.error('Error fetching username:', error);
-      }
-    };
-
-    fetchUsername();
-
     const fetchNotifications = async () => {
       try {
         const response = await getNotifications();
         const unreadNotifications = response.data.filter(
-          (notification) => !notification.isRead
+          notification => !notification.isRead,
         ).length;
         setUnreadCount(unreadNotifications);
 
@@ -58,21 +41,9 @@ const CustomHeader = ({ navigation }) => {
     return () => clearInterval(interval);
   }, [badgeScale]);
 
-  // Animasi teks muncul satu per satu
-  useEffect(() => {
-    const text = 'Selamat datang di Hydrotech_AB';
-    const animatedTextArray = text.split('').map(() => new Animated.Value(0));
-    setAnimatedText(animatedTextArray);
-
-    animatedTextArray.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 100,
-        delay: index * 50,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, []);
+  const handleSettingsPress = () => {
+    navigation.navigate('Settings');
+  };
 
   const handleBellPress = () => {
     navigation.navigate('Notifications');
@@ -80,19 +51,30 @@ const CustomHeader = ({ navigation }) => {
 
   return (
     <View style={styles.headerContainer}>
-      <View style={styles.userContainer}>
-        <Icon name="user" size={20} color="#333" style={styles.userIcon} />
-        <View>
-          <Text style={styles.greetingText}>Hello, {username || 'User'}</Text>
-          
+      <TouchableOpacity onPress={handleSettingsPress} style={styles.iconButton}>
+        <Icon name="cogs" size={24} color="#435B71" />
+      </TouchableOpacity>
+
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../assets/hydrotech.png')} // Path ke file PNG Anda
+          style={styles.logoImage}
+        />
+        <View style={styles.logoTextContainer}>
+          <Text style={styles.logoTextPrimary}>Hydrotech</Text>
+          <Text style={styles.logoTextSecondary}>AB</Text>
         </View>
-        
       </View>
-      <TouchableOpacity onPress={handleBellPress} style={styles.bellButton}>
+
+      <TouchableOpacity onPress={handleBellPress} style={styles.iconButton}>
         <View style={styles.bellContainer}>
-          <Icon name="bell" size={20} color="#333" />
+          <Icon name="bell" size={24} color="#435B71" />
           {unreadCount > 0 && (
-            <Animated.View style={[styles.badgeContainer, { transform: [{ scale: badgeScale }] }]}>
+            <Animated.View
+              style={[
+                styles.badgeContainer,
+                {transform: [{scale: badgeScale}]},
+              ]}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
             </Animated.View>
           )}
@@ -110,39 +92,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 20,
     paddingBottom: 5,
-
   },
-  userContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  userIcon: {
-    marginRight: 8,
-  },
-  greetingText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  welcomeTextContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  bellButton: {
+  iconButton: {
     padding: 5,
   },
-  bellContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#e0e0e0',
-    justifyContent: 'center',
+  logoContainer: {
     alignItems: 'center',
-    position: 'relative',
+    justifyContent: 'center',
+  },
+  logoImage: {
+    width: 42, // Atur ukuran sesuai kebutuhan
+    height: 42,
+    resizeMode: 'contain',
+  },
+  logoTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoTextPrimary: {
+    fontFamily:'Poppins-Regular',
+    fontSize: 18,
+    color: '#98C13F',
+    fontWeight: 'bold',
+  },
+  logoTextSecondary: {
+    fontFamily:'Poppins-Regular',
+    fontSize: 18,
+    color: '#226F54',
+    fontWeight: 'bold',
   },
   badgeContainer: {
     position: 'absolute',

@@ -49,7 +49,7 @@ const ProfileModal = ({ profileImage, profileName, onImageChange, onNameChange, 
         <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
                 <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                    <Icon name="close" size={24} color="#00a5a5" />
+                    <Icon name="close" size={24} color="#226F54" />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handleImagePick}>
@@ -97,7 +97,7 @@ const ProfileModal = ({ profileImage, profileName, onImageChange, onNameChange, 
                 message={alertMessage}
                 showConfirmButton={true}
                 confirmText="OK"
-                confirmButtonColor="#00a5a5"
+                confirmButtonColor="#226F54"
                 onConfirmPressed={() => {
                     setAlertVisible(false);
                     if (alertTitle === 'Perubahan Disimpan') {
@@ -139,13 +139,13 @@ const styles = StyleSheet.create({
         height: 100,
         borderRadius: 50,
         borderWidth: 2,
-        borderColor: '#00a5a5',
+        borderColor: '#226F54',
         marginBottom: 10,
     },
     profileName: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#00a5a5',
+        color: '#226F54',
         marginBottom: 15,
     },
     input: {
@@ -163,18 +163,18 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: '#ffffff',
         borderWidth: 1,
-        borderColor: '#00a5a5',
+        borderColor: '#226F54',
         paddingVertical: 10,
         paddingHorizontal: 15,
         borderRadius: 20,
         alignItems: 'center',
     },
     changePasswordButtonText: {
-        color: '#00a5a5',
+        color: '#226F54',
         fontSize: 16,
     },
     saveButton: {
-        backgroundColor: '#00a5a5',
+        backgroundColor: '#226F54',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 20,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     alertTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#00a5a5',
+        color: '#226F54',
     },
     alertMessage: {
         fontSize: 16,

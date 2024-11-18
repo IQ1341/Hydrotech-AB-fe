@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -71,7 +72,7 @@ const SettingsScreen = ({ navigation }) => {
             style={styles.profileImage}
           />
           <TouchableOpacity onPress={handleImagePick} style={styles.editIcon}>
-            <Icon name="pencil" size={24} color="#00a5a5" />
+            <Icon name="pencil" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.profileName}>{profileName}</Text>
         </View>
@@ -82,37 +83,37 @@ const SettingsScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.optionContainer} onPress={() => setShowProfileModal(true)}>
           <View style={styles.optionContent}>
             <View style={styles.iconBox}>
-              <Icon name="person-circle-outline" size={24} color="#00a5a5" />
+              <Icon name="person-circle-outline" size={24} color="#ffffff" />
             </View>
             <Text style={styles.optionText}>Profil Saya</Text>
           </View>
-          <Icon name="chevron-forward" size={24} color="#757575" />
+          <Icon name="chevron-forward" size={24} color="#226F54" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.optionContainer} onPress={() => setShowFAQModal(true)}>
           <View style={styles.optionContent}>
             <View style={styles.iconBox}>
-              <Icon name="help-circle-outline" size={24} color="#00a5a5" />
+              <Icon name="help-circle-outline" size={24} color="#ffffff" />
             </View>
             <Text style={styles.optionText}>FAQ</Text>
           </View>
-          <Icon name="chevron-forward" size={24} color="#757575" />
+          <Icon name="chevron-forward" size={24} color="#226F54" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.optionContainer} onPress={() => setShowAboutAppModal(true)}>
           <View style={styles.optionContent}>
             <View style={styles.iconBox}>
-              <Icon name="information-circle-outline" size={24} color="#00a5a5" />
+              <Icon name="information-circle-outline" size={24} color="#ffffff" />
             </View>
             <Text style={styles.optionText}>Tentang Aplikasi</Text>
           </View>
-          <Icon name="chevron-forward" size={24} color="#757575" />
+          <Icon name="chevron-forward" size={24} color="#226F54" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.optionContainer} onPress={handleLogout}>
           <View style={styles.optionContent}>
             <View style={styles.iconBox}>
-              <Icon name="log-out-outline" size={24} color="#00a5a5" />
+              <Icon name="log-out-outline" size={24} color="#ffffff" />
             </View>
             <Text style={styles.optionText}>Logout</Text>
           </View>
@@ -178,11 +179,9 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'transparent', // Atur menjadi transparan agar background innerContainer terlihat
+    // marginTop: 10, // Tambahkan margin ke atas
     padding: 20,
-    backgroundColor: '#cee8ec',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    overflow: 'hidden',
   },
   profileSection: {
     alignItems: 'center',
@@ -209,21 +208,21 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
-    borderColor: '#00a5a5',
+    borderColor: '#226F54',
     marginTop: 20,
   },
   editIcon: {
     position: 'absolute',
     top: 15,
     right: 15,
-    backgroundColor: '#dcdada',
+    backgroundColor: '#226F54',
     borderRadius: 15,
     padding: 10,
   },
   profileName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#00a5a5',
+    color: '#226F54',
     marginTop: 15,
   },
   menuContainer: {
@@ -249,14 +248,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconBox: {
-    backgroundColor: '#e0f7f9',
+    backgroundColor: '#226F54',
     borderRadius: 20,
     padding: 10,
     marginRight: 10,
   },
   optionText: {
     fontSize: 16,
-    color: '#00a5a5',
+    color: '#226F54',
   },
 });
 

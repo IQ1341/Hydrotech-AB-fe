@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://192.168.1.14:5000/api', // URL backend
+    baseURL: 'http://192.168.1.13:5000/api', // URL backend
 });
 
 // Sensor Data
-export const getSensorData = () => api.get('/sensor-data');
-export const addSensorData = (data) => api.post('/sensor-data', data);
+export const getSensorData = () => api.get('/sensors');
+export const addSensorData = (data) => api.post('/sensors', data);
 
 // Notifications
 export const getNotifications = () => api.get('/notifications');

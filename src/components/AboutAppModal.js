@@ -7,7 +7,7 @@ const AboutAppScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.contentContainer}>
         <View style={styles.header}>
-          <Icon name="information-circle-outline" size={30} color="#00a5a5" />
+          <Icon name="information-circle-outline" size={30} color="#226F54" />
           <Text style={styles.headerText}>Tentang Aplikasi</Text>
         </View>
         
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00a5a5',
+    color: '#226F54',
     marginLeft: 10,
   },
   section: {
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   link: {
-    color: '#00a5a5',
+    color: '#226F54',
     textDecorationLine: 'underline',
   },
 });

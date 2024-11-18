@@ -3,14 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-na
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AddDataModal from '../components/AddDataModal';
 import ThresholdSettingsModal from '../components/ThresholdSettingsModal';
-import CalibrationModal from '../components/CalibrationModal';
+import IntervalModal from '../components/IntervalModal';
 import { getThresholds } from '../services/api'; // Adjust the import path as needed
 
 const FeatureScreen = () => {
     const [showAddData, setShowAddData] = useState(false);
     const [showThresholdSettings, setShowThresholdSettings] = useState(false);
-    const [showCalibration, setShowCalibration] = useState(false);
+    const [showIntervalModal, setShowIntervalModal] = useState(false); // State untuk IntervalModal
     const [thresholds, setThresholds] = useState(null);
+    const [interval, setInterval] = useState(null);
 
     const fetchThresholds = async () => {
         try {
@@ -33,6 +34,9 @@ const FeatureScreen = () => {
     const handleThresholdsUpdate = async () => {
         await fetchThresholds(); // Refresh thresholds after closing the modal
     };
+    const handleIntervalChange = (newInterval) => {
+        setInterval(newInterval * 1000); // Convert seconds to milliseconds
+      };
 
     return (
         <View style={styles.container}>
@@ -42,10 +46,10 @@ const FeatureScreen = () => {
                     onPress={() => setShowAddData(true)}
                 >
                     <View style={styles.iconContainer}>
-                        <Icon name="add" size={24} color="#00a5a5" />
+                        <Icon name="add" size={24} color="#ffffff" />
                     </View>
                     <Text style={styles.optionText}>Tambah Data</Text>
-                    <Icon name="chevron-right" size={24} color="#00a5a5" style={styles.arrowIcon} />
+                    <Icon name="chevron-right" size={24} color="#ffffff" style={styles.arrowIcon} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -53,21 +57,21 @@ const FeatureScreen = () => {
                     onPress={() => setShowThresholdSettings(true)}
                 >
                     <View style={styles.iconContainer}>
-                        <Icon name="tune" size={24} color="#00a5a5" />
+                        <Icon name="tune" size={24} color="#ffffff" />
                     </View>
                     <Text style={styles.optionText}>Custom Threshold</Text>
-                    <Icon name="chevron-right" size={24} color="#00a5a5" style={styles.arrowIcon} />
+                    <Icon name="chevron-right" size={24} color="#ffffff" style={styles.arrowIcon} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={styles.option}
-                    onPress={() => setShowCalibration(true)}
+                    onPress={() => setShowIntervalModal(true)}
                 >
                     <View style={styles.iconContainer}>
-                        <Icon name="settings" size={24} color="#00a5a5" />
+                        <Icon name="settings" size={24} color="#ffffff" />
                     </View>
-                    <Text style={styles.optionText}>Fitur Lain</Text>
-                    <Icon name="chevron-right" size={24} color="#00a5a5" style={styles.arrowIcon} />
+                    <Text style={styles.optionText}>Set Interval</Text>
+                    <Icon name="chevron-right" size={24} color="#ffffff" style={styles.arrowIcon} />
                 </TouchableOpacity>
 
                 {/* Modal for Add Data */}
@@ -99,15 +103,17 @@ const FeatureScreen = () => {
                     </View>
                 </Modal>
 
-                {/* Modal for Calibration */}
                 <Modal
                     animationType="fade"
                     transparent={true}
-                    visible={showCalibration}
-                    onRequestClose={() => setShowCalibration(false)}
+                    visible={showIntervalModal}
+                    onRequestClose={() => setShowIntervalModal(false)}
                 >
                     <View style={styles.modalBackground}>
-                        <CalibrationModal onClose={() => setShowCalibration(false)} />
+                        <IntervalModal
+                            onClose={() => setShowIntervalModal(false)}
+                            onIntervalChange={handleIntervalChange} // Callback untuk mengatur interval
+                        />
                     </View>
                 </Modal>
             </View>
@@ -117,25 +123,19 @@ const FeatureScreen = () => {
                 <View style={styles.thresholdContainer}>
                     <Text style={styles.thresholdTitle}>Current Thresholds:</Text>
                     <View style={styles.thresholdItem}>
-                        <Icon name="speed" size={24} color="#00a5a5" style={styles.thresholdIcon} />
+                        <Icon name="speed" size={24} color="#226F54" style={styles.thresholdIcon} />
                         <Text style={styles.thresholdText}>
                             EC: {thresholds.ec ? `${thresholds.ec.min} - ${thresholds.ec.max}` : 'N/A'}
                         </Text>
                     </View>
                     <View style={styles.thresholdItem}>
-                        <Icon name="spa" size={24} color="#00a5a5" style={styles.thresholdIcon} />
+                        <Icon name="spa" size={24} color="#226F54" style={styles.thresholdIcon} />
                         <Text style={styles.thresholdText}>
                             pH: {thresholds.ph ? `${thresholds.ph.min} - ${thresholds.ph.max}` : 'N/A'}
                         </Text>
                     </View>
                     <View style={styles.thresholdItem}>
-                        <Icon name="filter-alt" size={24} color="#00a5a5" style={styles.thresholdIcon} />
-                        <Text style={styles.thresholdText}>
-                            DO: {thresholds.do ? `${thresholds.do.min} - ${thresholds.do.max}` : 'N/A'}
-                        </Text>
-                    </View>
-                    <View style={styles.thresholdItem}>
-                        <Icon name="thermostat" size={24} color="#00a5a5" style={styles.thresholdIcon} />
+                        <Icon name="thermostat" size={24} color="#226F54" style={styles.thresholdIcon} />
                         <Text style={styles.thresholdText}>
                             Temperature: {thresholds.temperature ? `${thresholds.temperature.min} - ${thresholds.temperature.max}` : 'N/A'}
                         </Text>
@@ -151,20 +151,18 @@ const FeatureScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 15,
-        backgroundColor: '#cee8ec',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        overflow: 'hidden',
-    },
-    innerContainer: {
-        flex: 1,
-    },
+        backgroundColor: 'transparent', // Atur menjadi transparan agar background innerContainer terlihat
+        marginTop: 10, // Tambahkan margin ke atas
+        padding: 20,
+      },
+    // innerContainer: {
+    //     flex: 1,
+    // },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#226F54',
         borderRadius: 20,
         marginVertical: 10,
         elevation: 3,
@@ -174,14 +172,14 @@ const styles = StyleSheet.create({
     },
     optionText: {
         fontSize: 18,
-        color: '#00a5a5',
+        color: '#ffffff',
         marginLeft: 10,
     },
     iconContainer: {
         width: 40,
         height: 40,
         borderRadius: 10,
-        backgroundColor: '#e0f7f9',
+        backgroundColor: '#74a292',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
     thresholdTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#00a5a5',
+        color: '#226F54',
         marginBottom: 10,
     },
     thresholdItem: {
@@ -234,7 +232,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 18,
-        color: '#00a5a5',
+        color: '#226F54',
         textAlign: 'center',
         marginTop: 20,
     },

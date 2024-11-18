@@ -246,7 +246,7 @@ const HistoryScreen = () => {
             />
           </View>
 
-          <View style={styles.chartContainer}>
+          {/* <View style={styles.chartContainer}>
             <Text style={styles.sectionHeader}>DO Sensor</Text>
             <LineChart
               data={{
@@ -259,7 +259,7 @@ const HistoryScreen = () => {
               style={styles.chart}
               bezier
             />
-          </View>
+          </View> */}
 
           <View style={styles.chartContainer}>
             <Text style={styles.sectionHeader}>Temperature Sensor</Text>
@@ -290,11 +290,11 @@ const HistoryScreen = () => {
             style={styles.tableTitle}>
             pH
           </DataTable.Title>
-          <DataTable.Title
+          {/* <DataTable.Title
             onPress={() => sortData('do')}
             style={styles.tableTitle}>
             DO 
-          </DataTable.Title>
+          </DataTable.Title> */}
           <DataTable.Title
             onPress={() => sortData('temperature')}
             style={styles.tableTitle}>
@@ -311,7 +311,7 @@ const HistoryScreen = () => {
           <DataTable.Row key={index} style={styles.tableRow}>
             <DataTable.Cell style={styles.tableCell}>{item.ec}</DataTable.Cell>
             <DataTable.Cell style={styles.tableCell}>{item.ph}</DataTable.Cell>
-            <DataTable.Cell style={styles.tableCell}>{item.do}</DataTable.Cell>
+            {/* <DataTable.Cell style={styles.tableCell}>{item.do}</DataTable.Cell> */}
             <DataTable.Cell style={styles.tableCell}>{item.temperature}</DataTable.Cell>
             <DataTable.Cell style={styles.tableCell}>
               {new Date(item.timestamp).toLocaleTimeString()}
@@ -327,12 +327,12 @@ const HistoryScreen = () => {
             <Icon
               name="chevron-left"
               size={20}
-              color={currentPage === 1 ? '#b0b0b0' : '#00a5a5'}
+              color={currentPage === 1 ? '#b0b0b0' : '#226F54'}
             />
             <Text
               style={[
                 styles.paginationText,
-                { color: currentPage === 1 ? '#b0b0b0' : '#00a5a5' },
+                { color: currentPage === 1 ? '#b0b0b0' : '#226F54' },
               ]}>
               Previous
             </Text>
@@ -349,7 +349,7 @@ const HistoryScreen = () => {
                   color:
                     currentPage * itemsPerPage >= filteredData.length
                       ? '#b0b0b0'
-                      : '#00a5a5',
+                      : '#226F54',
                 },
               ]}>
               Next
@@ -360,7 +360,7 @@ const HistoryScreen = () => {
               color={
                 currentPage * itemsPerPage >= filteredData.length
                   ? '#b0b0b0'
-                  : '#00a5a5'
+                  : '#226F54'
               }
             />
           </TouchableOpacity>
@@ -382,7 +382,7 @@ const chartConfig = {
   backgroundGradientFrom: '#f7f7f7',
   backgroundGradientTo: '#ffffff',
   decimalPlaces: 2,
-  color: (opacity = 1) => `rgba(0, 160, 160, ${opacity})`,
+  color: (opacity = 1) => `rgba(34, 111, 84, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   style: {
     borderRadius: 16,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00a5a5',
+    color: '#226F54',
     marginBottom: 20,
     textAlign: 'center',
 },
@@ -407,6 +407,7 @@ container: {
   flex: 1,
   backgroundColor: 'transparent', // Atur menjadi transparan agar background innerContainer terlihat
   marginTop: 10, // Tambahkan margin ke atas
+  padding: 20,
 },
 darkContainer: {
   backgroundColor: 'transparent', // Atur menjadi transparan untuk mode gelap
@@ -414,27 +415,27 @@ darkContainer: {
 scrollContent: {
   flexGrow: 1,
 },
-innerContainer: {
+// innerContainer: {
   
-  flex: 1,
-  padding: 15,
-  backgroundColor: '#cee8ec', // Warna latar belakang utama
-  borderTopLeftRadius: 30, // Radius sudut atas kiri
-  borderTopRightRadius: 30, // Radius sudut atas kanan
-  overflow: 'hidden', // Pastikan isi tidak melampaui sudut yang melengkung
-},
+//   flex: 1,
+//   padding: 15,
+//   backgroundColor: '#cee8ec', // Warna latar belakang utama
+//   borderTopLeftRadius: 30, // Radius sudut atas kiri
+//   borderTopRightRadius: 30, // Radius sudut atas kanan
+//   overflow: 'hidden', // Pastikan isi tidak melampaui sudut yang melengkung
+// },
 
   filterContainer: {
     marginBottom: 20,
     marginTop: 20,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#226F54',
     elevation: 3,
   },
   filterLabel: {
     fontSize: 16,
-    color: '#444',
+    color: '#fffff',
     marginBottom: 10,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -447,7 +448,7 @@ innerContainer: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     marginHorizontal: 5,
     alignItems: 'center',
@@ -473,7 +474,7 @@ innerContainer: {
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#00a5a5',
+    backgroundColor: '#226F54',
     borderRadius: 8,
     flex: 1,
     marginRight: 10,
@@ -489,7 +490,7 @@ innerContainer: {
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#00a5a5',
+    backgroundColor: '#226F54',
     borderRadius: 8,
     flex: 1,
     justifyContent: 'center',
@@ -508,7 +509,7 @@ innerContainer: {
     textAlign: 'center',
     marginBottom: 10,
     fontSize: 18,
-    color: '#2f8f9d',
+    color: '#226F54',
   },
   chart: {
     borderRadius: 16,

@@ -6,28 +6,73 @@ import {
   ScrollView,
   Dimensions,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon2 from 'react-native-vector-icons/MaterialIcons';
-import {getSensorData, getThresholds, setAllThresholds} from '../services/api'; // Update import API
+import {getSensorData, getThresholds, setAllThresholds} from '../services/api';
 import {sendNotification} from '../services/notificationService';
-import SensorChart from '../components/SensorChart'; // Import komponen SensorChart
+import SensorChart from '../components/SensorChart';
+import MqttClient from '../services/MqttClient';
 
 const DashboardScreen = ({isDarkMode}) => {
   const [sensorData, setSensorData] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [sensorChartData, setSensorChartData] = useState([]);
+  
   const [thresholds, setThresholds] = useState({
     ec: {min: 0, max: 0},
     ph: {min: 0, max: 0},
-    do: {min: 0, max: 0},
     temperature: {min: 0, max: 0},
   });
+  const [mqttSensorData, setMqttSensorData] = useState({
+    ec: null,
+    ph: null,
+    temperature: null,
+  });
+  const [isMixing, setIsMixing] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const handleToggleMixing = () => {
+    setIsMixing(prev => !prev);
+    MqttClient.publish('ABsensor/mixing', isMixing ? 'OFF' : 'ON');
+  };
+
+  
+
+  const handleToggleConnection = () => {
+    if (isConnected) {
+      MqttClient.publish('ABsensor/connect', 'OFF');
+      // MqttClient.disconnect(); // Disconnect MQTT
+    } else {
+      MqttClient.publish('ABsensor/connect', 'ON');
+      // MqttClient.connect(); // Connect MQTT
+    }
+    setIsConnected(prev => !prev);
+  };
+
+  const handleMqttMessage = (topic, payload) => {
+    const type = topic.split('/').pop();
+    setMqttSensorData(prevData => ({
+      ...prevData,
+      [type]: parseFloat(payload),
+    }));
+  };
 
   useEffect(() => {
-    fetchThresholds(); // Fetch thresholds when component mounts
+    MqttClient.onMessageReceived = handleMqttMessage; // Assign the handler only once
+    MqttClient.connect();
+
+    return () => {
+      MqttClient.onMessageReceived = null;
+      MqttClient.disconnect(); // Cleanup MQTT connection
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchThresholds();
     fetchData();
-    const interval = setInterval(fetchData, 5000); // Poll setiap 5 detik
+    const interval = setInterval(fetchData, 5000); // Poll every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -44,29 +89,27 @@ const DashboardScreen = ({isDarkMode}) => {
     }
   };
 
-  const fetchData = async () => {
-    setRefreshing(true);
-    try {
-      const response = await getSensorData();
-      const filteredData = filterDataByRange(response.data); // Tetap gunakan filter harian
-      const averageData = calculateAveragePerFiveMinutes(filteredData); // Hitung rata-rata per 5 menit
-      setSensorData(filteredData); // Data mentah untuk card sensor (realtime)
-      setSensorChartData(averageData); // Data yang dirata-ratakan untuk chart
-      checkThresholds(filteredData); // Cek threshold berdasarkan data mentah
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-  
+const fetchData = async () => {
+  setRefreshing(true);
+  try {
+    const response = await getSensorData();
+    const filteredData = filterDataByRange(response.data); // Filter data berdasarkan rentang tanggal
+    setSensorData(filteredData); // Simpan data mentah untuk ditampilkan di kartu
+    setSensorChartData(filteredData); // Data mentah langsung untuk grafik
+    checkThresholds(filteredData); // Cek data untuk melewati ambang batas
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    setRefreshing(false);
+  }
+};
 
 
   const checkThresholds = data => {
     if (data.length > 0) {
       const latestData = data[data.length - 1];
 
-      // Threshold check untuk EC
+      // Threshold check for EC
       if (
         latestData.ec < thresholds.ec.min ||
         latestData.ec > thresholds.ec.max
@@ -77,7 +120,7 @@ const DashboardScreen = ({isDarkMode}) => {
         );
       }
 
-      // Threshold check untuk pH
+      // Threshold check for pH
       if (
         latestData.ph < thresholds.ph.min ||
         latestData.ph > thresholds.ph.max
@@ -88,18 +131,7 @@ const DashboardScreen = ({isDarkMode}) => {
         );
       }
 
-      // Threshold check untuk DO
-      if (
-        latestData.do < thresholds.do.min ||
-        latestData.do > thresholds.do.max
-      ) {
-        sendNotification(
-          'Peringatan!',
-          `Nilai DO berada di luar batas aman: ${latestData.do} mg/L`,
-        );
-      }
-
-      // Threshold check untuk Temperature
+      // Threshold check for Temperature
       if (
         latestData.temperature < thresholds.temperature.min ||
         latestData.temperature > thresholds.temperature.max
@@ -112,62 +144,6 @@ const DashboardScreen = ({isDarkMode}) => {
     }
   };
 
-  const calculateAveragePerFiveMinutes = (data) => {
-    if (!data.length) return [];
-  
-    let result = [];
-    let startTime = new Date(data[0].timestamp).getTime();
-    const endTime = new Date().getTime();
-    const interval = 5 * 60 * 1000; // Interval 5 menit
-  
-    while (startTime <= endTime) {
-      const currentTime = startTime + interval;
-  
-      // Ambil data dalam interval waktu saat ini
-      const currentBatch = data.filter(item => {
-        const itemTime = new Date(item.timestamp).getTime();
-        return itemTime >= startTime && itemTime < currentTime;
-      });
-  
-      // Hitung rata-rata untuk batch saat ini
-      const average = calculateAverage(currentBatch);
-      result.push({
-        ...average,
-        timestamp: new Date(startTime).toISOString(), // Tetapkan waktu titik data tetap
-      });
-  
-      // Set waktu awal batch berikutnya
-      startTime = currentTime;
-    }
-  
-    return result;
-  };
-  
-  
-
-  
-  const calculateAverage = (batch) => {
-    if (batch.length === 0) {
-      return {
-        timestamp: new Date().toISOString(),
-        ec: 0,
-        ph: 0,
-        do: 0,
-        temperature: 0,
-      };
-    }
-  
-    const average = {
-      timestamp: batch[Math.floor(batch.length / 2)].timestamp,
-      ec: batch.reduce((sum, item) => sum + item.ec, 0) / batch.length,
-      ph: batch.reduce((sum, item) => sum + item.ph, 0) / batch.length,
-      do: batch.reduce((sum, item) => sum + item.do, 0) / batch.length,
-      temperature: batch.reduce((sum, item) => sum + item.temperature, 0) / batch.length,
-    };
-    return average;
-  };
-  
-  
   
   const filterDataByRange = data => {
     const now = new Date();
@@ -183,17 +159,16 @@ const DashboardScreen = ({isDarkMode}) => {
 
   const getIconBoxColor = (value, type) => {
     const color = getIconColor(value, type);
-    if (color === '#00a5a5') return 'rgba(0, 165, 165, 0.2)'; // Transparan hijau
+    if (color === '#226F54') return 'rgba(152, 193, 63, 0.2)'; // Transparan hijau
     if (color === '#eadb02') return 'rgba(234, 219, 2, 0.2)'; // Transparan kuning
     if (color === '#b30000') return 'rgba(179, 0, 0, 0.2)'; // Transparan merah
     return 'rgba(0, 165, 165, 0.2)'; // Warna default transparan hijau
   };
-  
 
   const getIconColor = (value, type) => {
     if (type === 'ec') {
       if (value >= thresholds.ec.min && value <= thresholds.ec.max)
-        return '#00a5a5'; // Hijau
+        return '#226F54'; // Hijau
       if (
         (value >= thresholds.ec.min - 0.3 && value < thresholds.ec.min) ||
         (value > thresholds.ec.max && value <= thresholds.ec.max + 0.3)
@@ -202,19 +177,10 @@ const DashboardScreen = ({isDarkMode}) => {
       return '#b30000'; // Merah
     } else if (type === 'ph') {
       if (value >= thresholds.ph.min && value <= thresholds.ph.max)
-        return '#00a5a5'; // Hijau
+        return '#226F54'; // Hijau
       if (
         (value >= thresholds.ph.min - 0.5 && value < thresholds.ph.min) ||
         (value > thresholds.ph.max && value <= thresholds.ph.max + 0.5)
-      )
-        return '#eadb02'; // Kuning
-      return '#b30000'; // Merah
-    } else if (type === 'do') {
-      if (value >= thresholds.do.min && value <= thresholds.do.max)
-        return '#00a5a5'; // Hijau
-      if (
-        (value >= thresholds.do.min - 1.0 && value < thresholds.do.min) ||
-        (value > thresholds.do.max && value <= thresholds.do.max + 1.0)
       )
         return '#eadb02'; // Kuning
       return '#b30000'; // Merah
@@ -223,7 +189,7 @@ const DashboardScreen = ({isDarkMode}) => {
         value >= thresholds.temperature.min &&
         value <= thresholds.temperature.max
       )
-        return '#00a5a5'; // Hijau
+        return '#226F54'; // Hijau
       if (
         (value >= thresholds.temperature.min - 2.0 &&
           value < thresholds.temperature.min) ||
@@ -233,7 +199,7 @@ const DashboardScreen = ({isDarkMode}) => {
         return '#eadb02'; // Kuning
       return '#b30000'; // Merah
     }
-    return '#00a5a5'; // Warna default jika tidak ada data atau tipe tidak dikenal
+    return '#226F54'; // Warna default jika tidak ada data atau tipe tidak dikenal
   };
 
   const screenWidth = Dimensions.get('window').width;
@@ -243,7 +209,7 @@ const DashboardScreen = ({isDarkMode}) => {
     backgroundGradientFrom: '#f7f7f7', // Latar belakang abu-abu muda
     backgroundGradientTo: '#ffffff', // Latar belakang putih
     decimalPlaces: 2,
-    color: (opacity = 1) => `rgba(0, 160, 160, ${opacity})`, // Sesuaikan dengan warna teks kartu
+    color: (opacity = 1) => `rgba(34, 111, 84, ${opacity})`, // Sesuaikan dengan warna teks kartu
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Sesuaikan dengan warna teks kartu
     style: {
       borderRadius: 16,
@@ -253,145 +219,130 @@ const DashboardScreen = ({isDarkMode}) => {
       rotation: -35,
     },
     propsForVerticalLabels: {
-      color: '#444444',
-      fontSize: 10, // Kurangi ukuran font jika perlu
-      rotation: -35, // Rotasi teks pada sumbu Y
-      textAnchor: 'start', // Mengatur titik jangkar teks
-      padding: 10, // Jika perlu, tambahkan padding untuk menyesuaikan
+      display: 'none', // Menghilangkan label vertikal
     },
   };
-  
+
   return (
     <ScrollView
       style={[styles.container, isDarkMode && styles.darkContainer]}
       contentContainerStyle={styles.scrollContent}>
       <View style={styles.innerContainer}>
+        <Text style={styles.monitTitle}>MONITORING ABMIX</Text>
         {/* Sensor Cards */}
         <View style={styles.cardContainer}>
+          {/* EC Sensor Card */}
           <View style={styles.card}>
-          <Text style={styles.cardTitle}>EC</Text>
-          <View
+            <Text style={styles.cardTitle}>EC</Text>
+            <View
               style={[
                 styles.iconBox,
                 {
-                  backgroundColor: getIconBoxColor(
-                    sensorData.length > 0 ? sensorData[sensorData.length - 1].ec : 0,
-                    'ec'
-                  ),
+                  backgroundColor: getIconBoxColor(mqttSensorData.ec, 'ec'),
                 },
               ]}>
               <Icon2
                 name="bolt"
-                size={45}
-                color={getIconColor(
-                  sensorData.length > 0 ? sensorData[sensorData.length - 1].ec : 0,
-                  'ec'
-                )}
+                size={25}
+                color={getIconColor(mqttSensorData.ec, 'ec')}
                 style={styles.icon}
               />
             </View>
             <Text style={styles.cardValue}>
-              {sensorData.length > 0
-                ? sensorData[sensorData.length - 1].ec + ' µS/cm'
-                : '0 µS/cm'}
+              {mqttSensorData.ec || '0'} µS/cm
             </Text>
           </View>
+
+          {/* pH Sensor Card */}
           <View style={styles.card}>
-          <Text style={styles.cardTitle}>pH</Text>
+            <Text style={styles.cardTitle}>pH</Text>
             <View
-                style={[
-                  styles.iconBox,
-                  {
-                    backgroundColor: getIconBoxColor(
-                      sensorData.length > 0 ? sensorData[sensorData.length - 1].ph : 0,
-                      'ph'
-                    ),
-                  },
-                ]}>
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: getIconBoxColor(mqttSensorData.ph, 'ph'),
+                },
+              ]}>
               <Icon
                 name="flask"
-                size={45}
-                color={getIconColor(
-                  sensorData.length > 0
-                    ? sensorData[sensorData.length - 1].ph
-                    : 0,
-                  'ph',
-                )}
+                size={25}
+                color={getIconColor(mqttSensorData.ph, 'ph')}
                 style={styles.icon}
               />
             </View>
-            
-            <Text style={styles.cardValue}>
-              {sensorData.length > 0
-                ? sensorData[sensorData.length - 1].ph +  ' pH'
-                : '0 pH'}
-                
-            </Text>
+            <Text style={styles.cardValue}>{mqttSensorData.ph || '0'} pH</Text>
           </View>
+
+          {/* Temperature Sensor Card */}
           <View style={styles.card}>
-          <Text style={styles.cardTitle}>DO</Text>
-            <View 
-            style={[
-              styles.iconBox,
-              {
-                backgroundColor: getIconBoxColor(
-                  sensorData.length > 0 ? sensorData[sensorData.length - 1].do : 0,
-                  'do'
-                ),
-              },
-            ]}>
-              <Icon2
-                name="air"
-                size={45}
-                color={getIconColor(
-                  sensorData.length > 0
-                    ? sensorData[sensorData.length - 1].do
-                    : 0,
-                  'do',
-                )}
-                style={styles.icon}
-              />
-            </View>
-            <Text style={styles.cardValue}>
-              {sensorData.length > 0
-                ? sensorData[sensorData.length - 1].do + ' mg/L'
-                : '0 mg/L'}
-            </Text>
-          </View>
-          <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Temperature</Text>
-            <View 
-            style={[
-              styles.iconBox,
-              {
-                backgroundColor: getIconBoxColor(
-                  sensorData.length > 0 ? sensorData[sensorData.length - 1].temperature : 0,
-                  'temperature'
-                ),
-              },
-            ]}>
+            <Text style={styles.cardTitle}>TEMP</Text>
+            <View
+              style={[
+                styles.iconBox,
+                {
+                  backgroundColor: getIconBoxColor(
+                    mqttSensorData.temperature,
+                    'temperature',
+                  ),
+                },
+              ]}>
               <Icon
                 name="thermometer-half"
-                size={45}
-                color={getIconColor(
-                  sensorData.length > 0
-                    ? sensorData[sensorData.length - 1].temperature
-                    : 0,
-                  'temperature',
-                )}
+                size={25}
+                color={getIconColor(mqttSensorData.temperature, 'temperature')}
                 style={styles.icon}
               />
             </View>
-
             <Text style={styles.cardValue}>
-              {sensorData.length > 0
-                ? sensorData[sensorData.length - 1].temperature + ' °C'
-                : '0 °C'}
+              {mqttSensorData.temperature || '0'} °C
             </Text>
           </View>
         </View>
+      </View>
+      <View style={styles.buttonContainer}>
+        {/* Tombol Mixing */}
+        <TouchableOpacity
+          style={[
+            styles.connectedButton,
+            isConnected ? styles.disconnected : styles.connected,
+          ]}
+          onPress={handleToggleConnection}>
+          <View style={styles.buttonContent}>
+            <Icon2
+              name={isConnected ? 'power-off' : 'power'}
+              size={20}
+              color="white"
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.connectedButtonText}>
+              {isConnected ? 'Disconnect' : 'Connect'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.mixingButton,
+            isMixing ? styles.stopMixing : styles.startMixing,
+          ]}
+          onPress={handleToggleMixing}>
+          <View style={styles.buttonContent}>
+            <Icon2
+              name={isMixing ? 'pause' : 'play-arrow'}
+              size={20}
+              color="white"
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.mixingButtonText}>
+              {isMixing ? 'Stop Mixing' : 'Start Mixing'}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-        {/* Sensor Graphs */}
+        {/* Tombol Connected */}
+        
+      </View>
+
+      <View style={styles.chartContent}>
         <ScrollView horizontal={true} style={styles.graphScroll}>
           <SensorChart
             title="EC Sensor"
@@ -412,17 +363,6 @@ const DashboardScreen = ({isDarkMode}) => {
             screenWidth={screenWidth}
             chartConfig={chartConfig}
           />
-
-          <SensorChart
-            title="DO Sensor"
-            data={sensorChartData.map(item => ({
-              timestamp: item.timestamp,
-              value: item.do,
-            }))}
-            screenWidth={screenWidth}
-            chartConfig={chartConfig}
-          />
-
           <SensorChart
             title="Temperature Sensor"
             data={sensorChartData.map(item => ({
@@ -443,6 +383,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent', // Atur menjadi transparan agar background innerContainer terlihat
     marginTop: 10, // Tambahkan margin ke atas
+    padding: 20,
   },
   darkContainer: {
     backgroundColor: 'transparent', // Atur menjadi transparan untuk mode gelap
@@ -451,36 +392,100 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   innerContainer: {
-    flex: 1,
+    // flex: 1,
+    height: 200,
     padding: 15,
-    backgroundColor: '#cee8ec', // Warna latar belakang utama
-    borderTopLeftRadius: 30, // Radius sudut atas kiri
-    borderTopRightRadius: 30, // Radius sudut atas kanan
-    overflow: 'hidden', // Pastikan isi tidak melampaui sudut yang melengkung
+    backgroundColor: '#226F54', // Warna latar belakang utama
+    borderRadius: 20,
+  },
+  monitTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins-Regular', // Apply Poppins-Regular font
+    fontWeight: 'bold',
+    color: 'white', // Ubah warna menjadi putih
+    textAlign: 'center',
+  },
+  chartContent: {
+    height: 275,
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#226F54', // Warna latar belakang utama
+    borderRadius: 20,
   },
   cardContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 2,
+    marginBottom: 10,
     marginTop: 10,
   },
   card: {
-    width: '48%',
+    flex: 1,
     backgroundColor: '#ffffff',
     padding: 15,
-    marginBottom: 10,
+    marginHorizontal: 5, // Memberikan jarak horizontal antar card
     borderRadius: 25,
-    elevation: 2,
+    alignItems: 'center',
+    maxWidth: '30%', // Batas maksimal lebar setiap card
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  darkCard: {
-    backgroundColor: '#333',
+  buttonIcon: {
+    marginRight: 10, // Jarak antara ikon dan teks
   },
-  icon: {},
+
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Menyusun tombol secara horizontal
+    marginTop: 20,
+  },
+  mixingButton: {
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    flex: 1, // Agar tombol bisa mengisi ruang yang ada
+     // Memberikan jarak antara tombol Mixing dan Connected
+  },
+  connectedButton: {
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    flex: 1, // Agar tombol bisa mengisi ruang yang ada
+    marginRight: 10,
+  },
+  startMixing: {
+    backgroundColor: '#226F54',
+  },
+  stopMixing: {
+    backgroundColor: '#b30000',
+  },
+  connected: {
+    backgroundColor: '#226F54',
+  },
+  disconnected: {
+    backgroundColor: '#b30000',
+  },
+  mixingButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  connectedButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 10,
+  },
   iconBox: {
-    width: 70,
-    height: 70,
+    width: 50,
+    height: 50,
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
@@ -488,16 +493,18 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 15,
+    fontFamily: 'Poppins-Regular', // Apply Poppins-Regular font
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#0ea3ba',
+    color: '#226F54',
   },
   darkText: {
     color: '#ffffff',
   },
   cardValue: {
-    fontSize: 16,
+    fontSize: 12,
+    fontFamily: 'Poppins-Regular', // Apply Poppins-Regular font
     fontWeight: 'bold',
     color: '#444444',
   },

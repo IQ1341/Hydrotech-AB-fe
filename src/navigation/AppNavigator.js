@@ -6,8 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CustomHeader from '../components/CustomHeader';
 import CustomHeader2 from '../components/CustomHeader2';
-import CustomHeader3 from '../components/CustomHeader3';
-import CustomHeader4 from '../components/CustomHeader4';
+// import CustomHeader3 from '../components/CustomHeader3'
 
 // Import screen components
 import DashboardScreen from '../Screens/DashboardScreen';
@@ -16,6 +15,7 @@ import HistoryScreen from '../Screens/HistoryScreen';
 import SettingsScreen from '../Screens/SettingsScreen';
 import NotificationsScreen from '../Screens/NotificationsScreen';
 import LoginScreen from '../Screens/LoginScreen'; // Import LoginScreen
+import SignUpScreen from '../Screens/SignUpScreen';
 
 // Create a bottom tab navigator instance
 const Tab = createBottomTabNavigator();
@@ -44,15 +44,23 @@ const TabNavigator = () => (
 
         return <Icon name={iconName} size={size} color={color} />;
       },
-      tabBarActiveTintColor: '#00a5a5',
+      tabBarActiveTintColor: '#226F54',
       tabBarInactiveTintColor: 'gray',
       tabBarStyle: {
         backgroundColor: '#f8f9fa',
         height: 65,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        // Optional: to apply shadow for better visibility of radius effect
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5, // This will add shadow on Android
       },
       tabBarLabelStyle: {
         fontSize: 12,
-        marginBottom:5
+        marginBottom: 5,
       },
     })}
   >
@@ -60,7 +68,7 @@ const TabNavigator = () => (
       name="Dashboard"
       component={DashboardScreen}
       options={{
-        header: ({ navigation }) => <CustomHeader navigation={navigation} />, // Use custom header only on the Dashboard
+        header: ({ navigation }) => <CustomHeader navigation={navigation} />,
       }}
     />
     <Tab.Screen
@@ -74,18 +82,19 @@ const TabNavigator = () => (
       name="Data Report"
       component={HistoryScreen}
       options={{
-        header: ({ navigation }) => <CustomHeader3 navigation={navigation} />,
+        header: ({ navigation }) => <CustomHeader2 navigation={navigation} />,
       }}
     />
     <Tab.Screen
       name="Settings"
       component={SettingsScreen}
       options={{
-        header: ({ navigation }) => <CustomHeader4 navigation={navigation} />,
+        header: ({ navigation }) => <CustomHeader2 navigation={navigation} />,
       }}
     />
   </Tab.Navigator>
 );
+
 
 const AppNavigator = () => (
   <View style={styles.container}>
@@ -97,8 +106,10 @@ const AppNavigator = () => (
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   </View>
