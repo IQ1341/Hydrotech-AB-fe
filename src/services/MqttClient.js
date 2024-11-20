@@ -1,6 +1,6 @@
 import { Client, Message } from 'paho-mqtt';
 
-const broker = 'ws://test.mosquitto.org:8080/mqtt'; // WebSocket broker URL
+const broker = 'mqtt://192.168.1.55:1883/mqtt'; // WebSocket broker URL
 
 class MqttClient {
   constructor() {
@@ -11,7 +11,6 @@ class MqttClient {
     this.onMessageReceived = null; // Initialize onMessageReceived
   }
 
-  // Allow the component to set the handler for received messages
   setOnMessageReceived(handler) {
     this.onMessageReceived = handler;
   }
