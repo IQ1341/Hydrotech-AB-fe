@@ -1,6 +1,6 @@
 import { Client, Message } from 'paho-mqtt';
 
-const broker = 'mqtt://192.168.1.55:1883/mqtt'; // WebSocket broker URL
+const broker = 'ws://192.168.1.55:8001/ws'; // WebSocket broker URL
 
 class MqttClient {
   constructor() {
